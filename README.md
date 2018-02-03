@@ -1,6 +1,6 @@
 # QueryStringMiddlware
 
-Set base message in appsettings.json
+Set base messages in appsettings.json
 
 Run and you should see the not found message
 
