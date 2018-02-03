@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using QueryMiddleware.Middleware;
+using QueryMiddleware.Settings;
 
 namespace QueryMiddleware
 {
@@ -21,6 +23,10 @@ namespace QueryMiddleware
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configure settings (these are now available to be injected)
+            services.Configure<MessageSettings>(Configuration.GetSection("messages"));
+
+            // Add mvc
             services.AddMvc();
         }
 
@@ -38,6 +44,9 @@ namespace QueryMiddleware
             }
 
             app.UseStaticFiles();
+
+            // Use query string middleware
+            app.UseMiddleware<QueryStringMiddleware>();
 
             app.UseMvc(routes =>
             {

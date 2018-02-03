@@ -1,37 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using QueryMiddleware.Extensions;
 using QueryMiddleware.Models;
+using QueryMiddleware.Settings;
 
 namespace QueryMiddleware.Controllers
 {
+    /// <summary>
+    /// Home controller
+    /// </summary>
     public class HomeController : Controller
     {
+        private readonly ILogger<HomeController> logger;
+        private readonly MessageSettings messageSettings;
+
+        public HomeController(ILogger<HomeController> logger, IOptions<MessageSettings> messageSettings)
+        {
+            this.logger = logger;
+            this.messageSettings = messageSettings.Value;
+        }
+
         public IActionResult Index()
         {
-            return View();
-        }
+            string queryMessage = HttpContext.GetQueryMessage();
 
-        public IActionResult About()
-        {
-            ViewData["Message"] = "Your application description page.";
+            // Do we have a message?
+            if (queryMessage == default(string))
+            {
+                // Log this
+                logger.LogInformation("No query message!");
 
-            return View();
-        }
+                return View(new QueryMessageViewModel
+                {
+                    Message = messageSettings.NotFoundMessage
+                });
+            }
 
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
+            // Log this
+            logger.LogInformation("There is a query message");
 
-            return View();
-        }
-
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // Yes we do, so use it
+            return View(new QueryMessageViewModel
+            {
+                Message = $"{messageSettings.FoundMessage}{queryMessage}"
+            });
         }
     }
 }
